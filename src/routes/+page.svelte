@@ -1,2 +1,21 @@
-<h1>Welcome to SvelteKit</h1>
-<p>Visit <a href="https://svelte.dev/docs/kit">svelte.dev/docs/kit</a> to read the documentation</p>
+<script lang="ts">
+	const { data } = $props();
+</script>
+
+<h1>varlock demo</h1>
+
+<ul>
+	<li><strong>DATABASE_URL</strong><span>{data.DATABASE_URL}</span></li>
+	<li><strong>GOOGLE_CLIENT_ID</strong><span>{data.GOOGLE_CLIENT_ID}</span></li>
+	<li><strong>GOOGLE_CLIENT_SECRET</strong><span>{data.GOOGLE_CLIENT_SECRET}</span></li>
+</ul>
+
+<style>
+	ul {
+		font-size: 2rem;
+	}
+
+	strong {
+		padding-right: 0.5rem;
+	}
+</style>
