@@ -1,42 +1,103 @@
-# sv
+# varlock Demo
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+This repository is a small SvelteKit demo showing how to use `varlock` to resolve environment variables from 1Password without committing plaintext secrets to the repo.
 
-## Creating a project
+The app is intentionally simple. It loads a few env vars on the server and renders them in the UI so you can verify that `varlock` resolved them correctly.
 
-If you're seeing this, you've probably already done this step. Congrats!
+## What This Demo Shows
 
-```sh
-# create a new project
-npx sv create my-app
+- Defining env vars in [`.env.schema`](/Users/thitemple/src/yt/varlock-demo/.env.schema) instead of a committed `.env`
+- Using `@varlock/1password-plugin` to fetch secrets from 1Password
+- Using `@varlock/vite-integration` so the schema is available during local development
+- Accessing typed env values through `varlock/env`
+- Keeping secret resolution in server-side code
+
+## How It Works Here
+
+This repo wires `varlock` into three places:
+
+1. [`.env.schema`](/Users/thitemple/src/yt/varlock-demo/.env.schema) defines the env contract, validation rules, type generation, and 1Password lookups.
+2. [`vite.config.ts`](/Users/thitemple/src/yt/varlock-demo/vite.config.ts) enables the `varlock` Vite plugin.
+3. [`src/routes/+page.server.ts`](/Users/thitemple/src/yt/varlock-demo/src/routes/+page.server.ts) reads resolved values from `varlock/env`.
+
+The generated types live in [`src/lib/env.d.ts`](/Users/thitemple/src/yt/varlock-demo/src/lib/env.d.ts).
+
+## Example Schema
+
+The schema in this repo uses `1Password` paths that change based on `APP_ENV`:
+
+```dotenv
+# @plugin(@varlock/1password-plugin)
+# @currentEnv=$APP_ENV
+# @initOp(token=$OP_TOKEN, allowAppAuth=forEnv(dev))
+
+# @type=enum(dev, prod)
+APP_ENV=dev
+
+DATABASE_URL=exec(`op read "op://varlock-demo-$APP_ENV/database/DATABASE_URL"`)
+GOOGLE_CLIENT_ID=exec(`op read "op://varlock-demo-$APP_ENV/auth/GOOGLE_CLIENT_ID"`)
+GOOGLE_CLIENT_SECRET=exec(`op read "op://varlock-demo-$APP_ENV/auth/GOOGLE_CLIENT_SECRET"`)
 ```
 
-To recreate this project with the same configuration:
+That means:
+
+- `APP_ENV=dev` reads from `varlock-demo-dev`
+- `APP_ENV=prod` reads from `varlock-demo-prod`
+
+## Prerequisites
+
+- `bun`
+- a 1Password service account token
+- 1Password items matching the paths referenced in [`.env.schema`](/Users/thitemple/src/yt/varlock-demo/.env.schema)
+
+## Running The Demo
+
+Install dependencies:
 
 ```sh
-# recreate this project
-bun x sv@0.15.1 create --template minimal --types ts --add prettier eslint drizzle="database:sqlite+sqlite:better-sqlite3" --install bun varlock-demo
+bun install
 ```
 
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+Export your 1Password token:
 
 ```sh
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+export OP_TOKEN=your_1password_service_account_token
 ```
 
-## Building
-
-To create a production version of your app:
+Optionally switch environments:
 
 ```sh
-npm run build
+export APP_ENV=dev
+# or
+export APP_ENV=prod
 ```
 
-You can preview the production build with `npm run preview`.
+Start the app:
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+```sh
+bun run dev
+```
+
+Open the local app and confirm the server rendered values are being resolved from 1Password.
+
+## Important Caveat
+
+This project is a demo. The page currently renders resolved values directly in the browser so you can confirm the integration is working.
+
+Do not copy that pattern into a real app for sensitive secrets. In production code, keep secrets on the server and expose only the derived behavior you actually need.
+
+## Useful Commands
+
+```sh
+bun run dev
+bun run check
+bun run lint
+bun run db:push
+```
+
+## Relevant Files
+
+- [`.env.schema`](/Users/thitemple/src/yt/varlock-demo/.env.schema): env schema, validation, and 1Password integration
+- [`vite.config.ts`](/Users/thitemple/src/yt/varlock-demo/vite.config.ts): enables `varlockVitePlugin()`
+- [`src/routes/+page.server.ts`](/Users/thitemple/src/yt/varlock-demo/src/routes/+page.server.ts): reads env values on the server
+- [`src/lib/server/db/index.ts`](/Users/thitemple/src/yt/varlock-demo/src/lib/server/db/index.ts): example of using env for database setup
