@@ -8,7 +8,7 @@ The app is intentionally simple. It loads a few env vars on the server and rende
 
 - Defining env vars in [`.env.schema`](/Users/thitemple/src/yt/varlock-demo/.env.schema) instead of a committed `.env`
 - Using `@varlock/1password-plugin` to fetch secrets from 1Password
-- Using `@varlock/vite-integration` so the schema is available during local development
+- Using `@varlock/vite-integration` so the schema is available during local development and SSR deployments
 - Accessing typed env values through `varlock/env`
 - Keeping secret resolution in server-side code
 
@@ -17,10 +17,12 @@ The app is intentionally simple. It loads a few env vars on the server and rende
 This repo wires `varlock` into three places:
 
 1. [`.env.schema`](/Users/thitemple/src/yt/varlock-demo/.env.schema) defines the env contract, validation rules, type generation, and 1Password lookups.
-2. [`vite.config.ts`](/Users/thitemple/src/yt/varlock-demo/vite.config.ts) enables the `varlock` Vite plugin.
+2. [`vite.config.ts`](/Users/thitemple/src/yt/varlock-demo/vite.config.ts) enables the `varlock` Vite plugin with SSR env injection for serverless runtimes.
 3. [`src/routes/+page.server.ts`](/Users/thitemple/src/yt/varlock-demo/src/routes/+page.server.ts) reads resolved values from `varlock/env`.
 
 The generated types live in [`src/lib/env.d.ts`](/Users/thitemple/src/yt/varlock-demo/src/lib/env.d.ts).
+
+For serverless deployments like Vercel, this repo uses `ssrInjectMode: 'resolved-env'` so the SSR bundle carries the resolved env graph at build time. That avoids runtime failures from `initVarlockEnv()` in environments that do not launch the server with `varlock run`.
 
 ## Example Schema
 
@@ -98,6 +100,6 @@ bun run db:push
 ## Relevant Files
 
 - [`.env.schema`](/Users/thitemple/src/yt/varlock-demo/.env.schema): env schema, validation, and 1Password integration
-- [`vite.config.ts`](/Users/thitemple/src/yt/varlock-demo/vite.config.ts): enables `varlockVitePlugin()`
+- [`vite.config.ts`](/Users/thitemple/src/yt/varlock-demo/vite.config.ts): enables `varlockVitePlugin({ ssrInjectMode: 'resolved-env' })`
 - [`src/routes/+page.server.ts`](/Users/thitemple/src/yt/varlock-demo/src/routes/+page.server.ts): reads env values on the server
 - [`src/lib/server/db/index.ts`](/Users/thitemple/src/yt/varlock-demo/src/lib/server/db/index.ts): example of using env for database setup
