@@ -34,9 +34,9 @@ The schema in this repo uses `1Password` paths that change based on `APP_ENV`:
 # @type=enum(dev, prod)
 APP_ENV=dev
 
-DATABASE_URL=exec(`op read "op://varlock-demo-$APP_ENV/database/DATABASE_URL"`)
-GOOGLE_CLIENT_ID=exec(`op read "op://varlock-demo-$APP_ENV/auth/GOOGLE_CLIENT_ID"`)
-GOOGLE_CLIENT_SECRET=exec(`op read "op://varlock-demo-$APP_ENV/auth/GOOGLE_CLIENT_SECRET"`)
+DATABASE_URL=op(`op://varlock-demo-$APP_ENV/database/DATABASE_URL`)
+GOOGLE_CLIENT_ID=op(`op://varlock-demo-$APP_ENV/auth/GOOGLE_CLIENT_ID`)
+GOOGLE_CLIENT_SECRET=op(`op://varlock-demo-$APP_ENV/auth/GOOGLE_CLIENT_SECRET`)
 ```
 
 That means:

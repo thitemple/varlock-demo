@@ -13,7 +13,7 @@ export type CoercedEnvSchema = {
    * 📚 {@link https://developer.1password.com/docs/service-accounts/ | 1Password service accounts}  
    * 📚 {@link https://example.com}  
    */
-  OP_TOKEN: string;
+  OP_TOKEN?: string;
   
   /**
    * **APP_ENV**  
